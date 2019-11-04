@@ -1,6 +1,7 @@
 import sys
 import math
 import random
+import argparse
 import numpy as np
 from pprint import pprint
 import matplotlib.pyplot as plt
@@ -85,6 +86,7 @@ class Unit:
             plt.show()
 
 
+# === Runtime Functions ===
 def generate_encodings(dimension, min_rad=0, max_rad=None, min_i=1, max_i=10, include_enemies=True):
     import random
     max_rad = dimension//2 or max_rad
@@ -111,11 +113,26 @@ def display_encodings(*cache):
 
 if __name__ == '__main__':
 
-    def main(num_units=20, dimension=50, show_figure=False):
+    def options():
+        ap = argparse.ArgumentParser(usage='python3 -m main.py [options]', description='Implementation of tactical influence maps')
+        ap.add_argument('-d', '--dimension', help='Side length of gridworld', default=50)
+        ap.add_argument('-u', '--units', help='Number of units to generate', default=20)
+        ap.add_argument('-f', '--figure', help='Whether to display plot of result', action='store_true', default=True)
+        ap.add_argument('-a', '--ascii', help='Whether to print numpy array to terminal', action='store_true')
+        ap.add_argument('-v', '--verbose', help='Control amount of printed output', action='store_true')
+        ap.add_argument('-e', '--enemies', help='Generate both allies and enemies', action='store_true', default=True)
+
+        args = ap.parse_args()
+        return args
+
+
+    def run(num_units, dimension, show_figure, show_array, enemies, verbose):
         cache = []
         for _ in range(num_units):
-            cache.append(generate_encodings(dimension))
-        display_encodings(*cache)
+            cache.append(generate_encodings(dimension, include_enemies=enemies))
+
+        print('[+] DIMENSION: {}\n[+] UNITS: {}'.format(num_units, dimension))
+        if verbose: display_encodings(*cache)
 
         keys = list(range(num_units))
         objs = dict.fromkeys(keys)
@@ -130,6 +147,8 @@ if __name__ == '__main__':
             unit.build_map()
             world = world + unit.as_array()
 
-        Unit.display(world, text=False, figure=show_figure)
+        Unit.display(world, text=show_array, figure=show_figure)
 
-    main()
+
+    args = options()
+    run(args.units, args.dimension, args.figure, args.ascii, args.enemies, args.verbose)
